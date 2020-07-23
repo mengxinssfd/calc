@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    // "outDir": "lib-es",
+    // "module": "commonjs",
+    // "target": "es5",
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "target": "esnext",
+    "sourceMap": false,
+    "allowJs": true,
+    // "jsx": "react",
+    "moduleResolution": "node",
+    "declaration": true,
+    //    "rootDir": "src",
+    "forceConsistentCasingInFileNames": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": false,
+    "noImplicitAny": false,
+    "importHelpers": true,
+    "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    // "allowSyntheticDefaultImports": true,
+    "paths": {
+      "*": [
+        "src/*"
+      ]
+    }
+  },
+  // "include": ["src/**/*", "src/global.d.ts"],
+  "exclude": [
+    "tslib",
+    "lib*",
+    "webpack.config.js",
+    "test.ts"
+  ]
+}
