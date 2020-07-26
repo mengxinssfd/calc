@@ -16,33 +16,33 @@ test('getNumberLenAfterDot', () => {
 });
 
 test('Calc', () => {
-    const Calc = numCalc.NumberCalc;
+    const Num = numCalc.NumberUtil;
     // 0.1 + 0.2 = 0.30000000000000004
     expect(0.1 + 0.2).not.toBe(0.3);
-    const c = new Calc(1);
+    const c = new Num(1);
 
     // 0.3 - 0.1 = 0.19999999999999998
     expect(0.3 - 0.1).not.toBe(0.2);
-    expect(Calc.init(0.3).minus(0.1).value).toBe(0.2);
+    expect(Num.init(0.3).minus(0.1).value).toBe(0.2);
     // 0.2 * 0.1 = 0.020000000000000004
     expect(0.2 * 0.1).not.toBe(0.02);
-    expect(Calc.init(0.2).times(0.1).value).toBe(0.02);
+    expect(Num.init(0.2).times(0.1).value).toBe(0.02);
     // 0.3 / 0.1 = 2.9999999999999996
     expect(0.3 / 0.1).not.toBe(3);
-    expect(Calc.init(0.3).divide(0.1).value).toBe(3);
+    expect(Num.init(0.3).divide(0.1).value).toBe(3);
 
     // 100 / 10 + 5 - 2 = 13
     expect(c.times(100).divide(10).plus(5).minus(2).value).toBe(13);
 
     // 0.3 - 0.1 = 0.19999999999999998
     expect(0.3 - 0.1).not.toBe(0.2);
-    expect(Calc.init(0.3)["-"](0.1).value).toBe(0.2);
+    expect(Num.init(0.3)["-"](0.1).value).toBe(0.2);
     // 0.2 * 0.1 = 0.020000000000000004
     expect(0.2 * 0.1).not.toBe(0.02);
-    expect(Calc.init(0.2)["*"](0.1).value).toBe(0.02);
+    expect(Num.init(0.2)["*"](0.1).value).toBe(0.02);
     // 0.3 / 0.1 = 2.9999999999999996
     expect(0.3 / 0.1).not.toBe(3);
-    expect(Calc.init(0.3)["/"](0.1).value).toBe(3);
+    expect(Num.init(0.3)["/"](0.1).value).toBe(3);
 
     c.reset();
     // 100 / 10 + 5 - 2 = 13
@@ -53,92 +53,101 @@ test('Calc', () => {
 
 
     //  100 - 20 * 2 = 60
-    expect(Calc.init(20)["*"](2).by(100, "-").value).toBe(60);
+    expect(Num.init(20)["*"](2).by(100, "-").value).toBe(60);
 
     // 参数测试
     // 100 - 10 - 20 - 30 - 100 = -60
-    expect(Calc.init(100)["-"]([Calc.init(50), Calc.init(50)]).value).toBe(0);
-    expect(Calc.init(100)["-"](Calc.init(50), Calc.init(50)).value).toBe(0);
-    expect(Calc.init(100)["-"]([Calc.init(50)], Calc.init(50)).value).toBe(0);
-    expect(Calc.init(100)["-"]([Calc.init(50), Calc.init(50)], Calc.init(50)).value).toBe(-50);
-    expect(Calc.init(100)["-"]([10, 20, 30, 100]).value).toBe(-60);
-    expect(Calc.init(100)["-"](10, 20, 30, 100).value).toBe(-60);
-    expect(Calc.init(100)["-"]([10, 20], 30, 100).value).toBe(-60);
-    expect(Calc.init(100)["-"]([10, 20, 30], 100).value).toBe(-60);
+    expect(Num.init(100)["-"]([Num.init(50), Num.init(50)]).value).toBe(0);
+    expect(Num.init(100)["-"](Num.init(50), Num.init(50)).value).toBe(0);
+    expect(Num.init(100)["-"]([Num.init(50)], Num.init(50)).value).toBe(0);
+    expect(Num.init(100)["-"]([Num.init(50), Num.init(50)], Num.init(50)).value).toBe(-50);
+    expect(Num.init(100)["-"]([10, 20, 30, 100]).value).toBe(-60);
+    expect(Num.init(100)["-"](10, 20, 30, 100).value).toBe(-60);
+    expect(Num.init(100)["-"]([10, 20], 30, 100).value).toBe(-60);
+    expect(Num.init(100)["-"]([10, 20, 30], 100).value).toBe(-60);
 
-    expect(Calc.init(100)["+"]([Calc.init(50), Calc.init(50)]).value).toBe(200);
-    expect(Calc.init(100)["+"](Calc.init(50), Calc.init(50)).value).toBe(200);
-    expect(Calc.init(100)["+"]([Calc.init(50)], Calc.init(50)).value).toBe(200);
-    expect(Calc.init(100)["+"]([Calc.init(50), Calc.init(50)], Calc.init(50)).value).toBe(250);
-    expect(Calc.init(100)["+"]([10, 20, 30, 100]).value).toBe(260);
-    expect(Calc.init(100)["+"](10, 20, 30, 100).value).toBe(260);
-    expect(Calc.init(100)["+"]([10, 20], 30, 100).value).toBe(260);
-    expect(Calc.init(100)["+"]([10, 20, 30], 100).value).toBe(260);
+    expect(Num.init(100)["+"]([Num.init(50), Num.init(50)]).value).toBe(200);
+    expect(Num.init(100)["+"](Num.init(50), Num.init(50)).value).toBe(200);
+    expect(Num.init(100)["+"]([Num.init(50)], Num.init(50)).value).toBe(200);
+    expect(Num.init(100)["+"]([Num.init(50), Num.init(50)], Num.init(50)).value).toBe(250);
+    expect(Num.init(100)["+"]([10, 20, 30, 100]).value).toBe(260);
+    expect(Num.init(100)["+"](10, 20, 30, 100).value).toBe(260);
+    expect(Num.init(100)["+"]([10, 20], 30, 100).value).toBe(260);
+    expect(Num.init(100)["+"]([10, 20, 30], 100).value).toBe(260);
 
-    expect(Calc.init(100)["*"]([Calc.init(50), Calc.init(2)]).value).toBe(10000);
-    expect(Calc.init(100)["*"](Calc.init(50), Calc.init(2)).value).toBe(10000);
-    expect(Calc.init(100)["*"]([Calc.init(50)], Calc.init(2)).value).toBe(10000);
-    expect(Calc.init(100)["*"]([Calc.init(50), Calc.init(2)], Calc.init(5)).value).toBe(50000);
-    expect(Calc.init(100)["*"]([1, 2, 3, 10]).value).toBe(6000);
-    expect(Calc.init(100)["*"](1, 2, 3, 10).value).toBe(6000);
-    expect(Calc.init(100)["*"]([1, 2], 3, 10).value).toBe(6000);
-    expect(Calc.init(100)["*"]([1, 2, 3], 10).value).toBe(6000);
+    expect(Num.init(100)["*"]([Num.init(50), Num.init(2)]).value).toBe(10000);
+    expect(Num.init(100)["*"](Num.init(50), Num.init(2)).value).toBe(10000);
+    expect(Num.init(100)["*"]([Num.init(50)], Num.init(2)).value).toBe(10000);
+    expect(Num.init(100)["*"]([Num.init(50), Num.init(2)], Num.init(5)).value).toBe(50000);
+    expect(Num.init(100)["*"]([1, 2, 3, 10]).value).toBe(6000);
+    expect(Num.init(100)["*"](1, 2, 3, 10).value).toBe(6000);
+    expect(Num.init(100)["*"]([1, 2], 3, 10).value).toBe(6000);
+    expect(Num.init(100)["*"]([1, 2, 3], 10).value).toBe(6000);
 
     const result = 2.5;
-    expect(Calc.init(100)["/"]([Calc.init(50), Calc.init(2)]).value).toBe(1);
-    expect(Calc.init(100)["/"](Calc.init(50), Calc.init(2)).value).toBe(1);
-    expect(Calc.init(100)["/"]([Calc.init(50)], Calc.init(2)).value).toBe(1);
-    expect(Calc.init(100)["/"]([Calc.init(50), Calc.init(2)], Calc.init(0.5)).value).toBe(2);
-    expect(Calc.init(100)["/"]([1, 2, 2, 10]).value).toBe(result);
-    expect(Calc.init(100)["/"](1, 2, 2, 10).value).toBe(result);
-    expect(Calc.init(100)["/"]([1, 2], 2, 10).value).toBe(result);
-    expect(Calc.init(100)["/"]([1, 2, 2], 10).value).toBe(result);
+    expect(Num.init(100)["/"]([Num.init(50), Num.init(2)]).value).toBe(1);
+    expect(Num.init(100)["/"](Num.init(50), Num.init(2)).value).toBe(1);
+    expect(Num.init(100)["/"]([Num.init(50)], Num.init(2)).value).toBe(1);
+    expect(Num.init(100)["/"]([Num.init(50), Num.init(2)], Num.init(0.5)).value).toBe(2);
+    expect(Num.init(100)["/"]([1, 2, 2, 10]).value).toBe(result);
+    expect(Num.init(100)["/"](1, 2, 2, 10).value).toBe(result);
+    expect(Num.init(100)["/"]([1, 2], 2, 10).value).toBe(result);
+    expect(Num.init(100)["/"]([1, 2, 2], 10).value).toBe(result);
 
-    expect(Calc.init(100).pow(1).value).toBe(100);
-    expect(Calc.init(100)["**"](Calc.init(1)).value).toBe(100);
-    expect(Calc.init(100)["**"](1).value).toBe(100);
-    expect(Calc.init(100)["**"](2).value).toBe(100 ** 2);
+    expect(Num.init(100).pow(1).value).toBe(100);
+    expect(Num.init(100)["**"](Num.init(1)).value).toBe(100);
+    expect(Num.init(100)["**"](1).value).toBe(100);
+    expect(Num.init(100)["**"](2).value).toBe(100 ** 2);
 
-    expect(Calc.init(100).in(Calc.init(1), 200)).toBeTruthy();
-    expect(Calc.init(100).in(1, Calc.init(200))).toBeTruthy();
-    expect(Calc.init(100).in(Calc.init(1), Calc.init(200))).toBeTruthy();
-    expect(Calc.init(100).in(1, 200)).toBeTruthy();
-    expect(Calc.init(1).in(1, 200)).toBeTruthy();
-    expect(Calc.init(200).in(1, 200)).toBeTruthy();
+    expect(Num.init(100).in(Num.init(1), 200)).toBeTruthy();
+    expect(Num.init(100).in(1, Num.init(200))).toBeTruthy();
+    expect(Num.init(100).in(Num.init(1), Num.init(200))).toBeTruthy();
+    expect(Num.init(100).in(1, 200)).toBeTruthy();
+    expect(Num.init(1).in(1, 200)).toBeTruthy();
+    expect(Num.init(200).in(1, 200)).toBeTruthy();
+    expect(Num.init(200).in(1, 100)).toBe(false);
+    expect(Num.init(99).in(100, 200)).toBe(false);
 
-    expect(Calc.init(100).toBeGreaterThan(1)).toBeTruthy();
-    expect(Calc.init(100)[">"](Calc.init(1))).toBeTruthy();
-    expect(Calc.init(100)[">"](1)).toBeTruthy();
-    expect(Calc.init(100)[">"](100)).toBeFalsy();
-    expect(Calc.init(100)[">"](Infinity)).toBeFalsy();
-    expect(Calc.init(100)[">"](-Infinity)).toBeTruthy();
+    expect(Num.init(100).toBeGreaterThan(1)).toBeTruthy();
+    expect(Num.init(100)[">"](Num.init(1))).toBeTruthy();
+    expect(Num.init(100)[">"](1)).toBeTruthy();
+    expect(Num.init(100)[">"](100)).toBeFalsy();
+    expect(Num.init(100)[">"](Infinity)).toBeFalsy();
+    expect(Num.init(100)[">"](-Infinity)).toBeTruthy();
 
-    expect(Calc.init(100).toBeGreaterThanOrEqual(1)).toBeTruthy();
-    expect(Calc.init(100)[">="](Calc.init(1))).toBeTruthy();
-    expect(Calc.init(100)[">="](1)).toBeTruthy();
-    expect(Calc.init(100)[">="](100)).toBeTruthy();
+    expect(Num.init(100).toBeGreaterThanOrEqual(1)).toBeTruthy();
+    expect(Num.init(100)[">="](Num.init(1))).toBeTruthy();
+    expect(Num.init(100)[">="](1)).toBeTruthy();
+    expect(Num.init(100)[">="](100)).toBeTruthy();
 
-    expect(Calc.init(1).toBeLessThan(2)).toBeTruthy();
-    expect(Calc.init(1)["<"](Calc.init(2))).toBeTruthy();
-    expect(Calc.init(1)["<"](2)).toBeTruthy();
-    expect(Calc.init(1)["<"](-100)).toBeFalsy();
-    expect(Calc.init(1)["<"](1)).toBeFalsy();
+    expect(Num.init(1).toBeLessThan(2)).toBeTruthy();
+    expect(Num.init(1)["<"](Num.init(2))).toBeTruthy();
+    expect(Num.init(1)["<"](2)).toBeTruthy();
+    expect(Num.init(1)["<"](-100)).toBeFalsy();
+    expect(Num.init(1)["<"](1)).toBeFalsy();
 
-    expect(Calc.init(1).toBeLessThanOrEqual(2)).toBeTruthy();
-    expect(Calc.init(1)["<="](Calc.init(2))).toBeTruthy();
-    expect(Calc.init(1)["<="](2)).toBeTruthy();
-    expect(Calc.init(1)["<="](1)).toBeTruthy();
-    expect(Calc.init(1)["<="](-100)).toBeFalsy();
+    expect(Num.init(1).toBeLessThanOrEqual(2)).toBeTruthy();
+    expect(Num.init(1)["<="](Num.init(2))).toBeTruthy();
+    expect(Num.init(1)["<="](2)).toBeTruthy();
+    expect(Num.init(1)["<="](1)).toBeTruthy();
+    expect(Num.init(1)["<="](-100)).toBeFalsy();
 
-    expect(Calc.init(1).toBeEqual(1)).toBeTruthy();
-    expect(Calc.init(1)["="](Calc.init(1))).toBeTruthy();
-    expect(Calc.init(1)["="](1)).toBeTruthy();
-    expect(Calc.init(1)["="](2)).toBeFalsy();
+    expect(Num.init(1).toBeEqual(1)).toBeTruthy();
+    expect(Num.init(1)["="](Num.init(1))).toBeTruthy();
+    expect(Num.init(1)["="](1)).toBeTruthy();
+    expect(Num.init(1)["="](2)).toBeFalsy();
 
+    expect(Num.init(1.001).toInt().value).toBe(1);
 
+    expect(Num.init(1).abs().value).toBe(1);
+    expect(Num.init(-1).abs().value).toBe(1);
+
+    expect(Num.init(100.3).floor().value).toBe(Math.floor(100.3));
+
+    expect(Num.init(100.5).round().value).toBe(Math.round(100.5));
 });
 test('Calc 2', () => {
-    const Calc = numCalc.NumberCalc;
+    const Calc = numCalc.NumberUtil;
     const c = Calc.init(10)["/"](2)["+"](1);
     expect(Calc.init(100)["+"](c.reset()).by(10, "-").value).toBe(-100);
     expect(Calc.init(100)["-"](c).value).toBe(90);
@@ -146,7 +155,7 @@ test('Calc 2', () => {
     expect(new Calc(100)["/"](c).by(10, "-").value).toBe(0);
 });
 test('template', () => {
-    const Calc = numCalc.NumberCalc;
+    const Calc = numCalc.NumberUtil;
 
     // +
     expect(Calc.template("100+200").value).toBe(300);

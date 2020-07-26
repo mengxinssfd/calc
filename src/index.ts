@@ -28,30 +28,56 @@ function getPow(a: number, b: number): number {
     return Math.pow(10, Math.max(aLen, bLen));
 }
 
-type Num = number | NumberCalc;
-type NumOrNArr = Num[] | Num;
+type NUM = number | NumberUtil;
+type NumOrNArr = NUM[] | NUM;
 
-function getValue(value: Num): number {
-    return value instanceof NumberCalc ? value.value : value;
+function getValue(value: NUM): number {
+    return value instanceof NumberUtil ? value.value : value;
 }
 
 type CalcType = "+" | "-" | "*" | "/" | "%" | "**"
 // const CalcTypeArr = ["+", "-", "*", "/", "%", "**"];
 
 // 链式计算
-export class NumberCalc {
+export class NumberUtil {
     private _value: number;
 
-    constructor(private readonly initNumber: number) {
+    public constructor(private readonly initNumber: number) {
         this.setValue(initNumber);
     }
 
-    // 初始化一个实例
-    public static init(num: number): NumberCalc {
-        return new NumberCalc(num);
+    private calcArr(num: NUM[], callback: (a: number, b: number, pow: number) => number) {
+        num.forEach(b => {
+            b = getValue(b);
+            const a = this._value;
+            let pow = getPow(a, b);
+            this.setValue(callback(a, b, pow));
+        });
     }
 
-    public static template(template: string): NumberCalc {
+    // 去除小数点
+    private calc(callback: (currentValue: number, value: number, pow: number) => number, value: NumOrNArr, others?: NUM[]) {
+        if (!isArray(value)) {
+            value = getValue(value);
+            const a = this._value;
+            const b = value;
+            const pow = getPow(a, b);
+            this.setValue(callback(a, b, pow));
+        } else {
+            this.calcArr(value, callback);
+        }
+        if (others && others.length) {
+            this.calcArr(others, callback);
+        }
+    }
+
+
+    // 初始化一个实例
+    public static init(num: number): NumberUtil {
+        return new NumberUtil(num);
+    }
+
+    public static template(template: string): NumberUtil {
         // 数字
         const regNum = " ?-?\\d?\\.?\\d+ ?";
         // 乘除余
@@ -60,7 +86,7 @@ export class NumberCalc {
         const regPow = "\\*\\*";
         // 加减
         const regJJ = "+\\-";
-        const Calc = new NumberCalc(0);
+        const Calc = new NumberUtil(0);
 
         function calc(search: string, label: CalcType): string {
             // console.log("s:", search, "label:", label);
@@ -95,36 +121,12 @@ export class NumberCalc {
             return result;
         }
 
-        return new NumberCalc(Number(foreach(template)));
+        return new NumberUtil(Number(foreach(template)));
     }
 
-    private calcArr(num: Num[], callback: (a: number, b: number, pow: number) => number) {
-        num.forEach(b => {
-            b = getValue(b);
-            const a = this._value;
-            let pow = getPow(a, b);
-            this.setValue(callback(a, b, pow));
-        });
-    }
-
-    // 去除小数点
-    private calc(callback: (currentValue: number, value: number, pow: number) => number, value: NumOrNArr, others?: Num[]) {
-        if (!isArray(value)) {
-            value = getValue(value);
-            const a = this._value;
-            const b = value;
-            const pow = getPow(a, b);
-            this.setValue(callback(a, b, pow));
-        } else {
-            this.calcArr(value, callback);
-        }
-        if (others && others.length) {
-            this.calcArr(others, callback);
-        }
-    }
-
+    // *************运算*************
     // 加
-    public ["+"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+    public ["+"](value: NumOrNArr, ...others: NUM[]): NumberUtil {
         this.calc((a, b, pow) => (a * pow + b * pow) / pow, value, others);
         return this;
     }
@@ -132,7 +134,7 @@ export class NumberCalc {
     public plus = this["+"];
 
     // 减
-    public ["-"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+    public ["-"](value: NumOrNArr, ...others: NUM[]): NumberUtil {
         this.calc(((a, b, pow) => (a * pow - b * pow) / pow), value, others);
         return this;
     }
@@ -140,7 +142,7 @@ export class NumberCalc {
     public minus = this["-"];
 
     // 乘
-    public ["*"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+    public ["*"](value: NumOrNArr, ...others: NUM[]): NumberUtil {
         this.calc((a, b, pow) => pow * a * (b * pow) / (pow * pow), value, others);
         return this;
     }
@@ -148,22 +150,23 @@ export class NumberCalc {
     public times = this["*"];
 
     // 除
-    public ["/"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+    public ["/"](value: NumOrNArr, ...others: NUM[]): NumberUtil {
         this.calc((a, b, pow) => a * pow / (b * pow), value, others);
         return this;
     }
 
     public divide = this["/"];
 
-    // 除
-    public ["%"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+    // 余
+    public ["%"](value: NumOrNArr, ...others: NUM[]): NumberUtil {
         this.calc((a, b, pow) => a % b, value, others);
         return this;
     }
 
+    // 取余的英文不知道怎么说
 
     // 幂
-    public ["**"](pow: Num): NumberCalc {
+    public ["**"](pow: NUM = 2): NumberUtil {
         pow = getValue(pow);
         this.calc((a, value, pow) => a ** value, pow);
         return this;
@@ -171,9 +174,21 @@ export class NumberCalc {
 
     public pow = this["**"];
 
-    // 比较
+
+    // 100 - 20 * 2; <==>  Calc.init(20)["*"](2).by(100, "-")
+    public by(num: NUM, calcLabel: CalcType): NumberUtil {
+        num = getValue(num);
+        const value = this._value;
+        this.setValue(num);
+        this[calcLabel](value);
+        return this;
+    }
+
+    // *************运算*************
+
+    // *************比较*************
     // 小于
-    public ["<"](value: Num): boolean {
+    public ["<"](value: NUM): boolean {
         value = getValue(value);
         return this.value < value;
     }
@@ -181,7 +196,7 @@ export class NumberCalc {
     public toBeLessThan = this["<"];
 
     // 小于等于
-    public ["<="](value: Num): boolean {
+    public ["<="](value: NUM): boolean {
         value = getValue(value);
         return this.value <= value;
     }
@@ -189,7 +204,7 @@ export class NumberCalc {
     public toBeLessThanOrEqual = this["<="];
 
     // 大于
-    public [">"](value: Num): boolean {
+    public [">"](value: NUM): boolean {
         value = getValue(value);
         return this.value > value;
     }
@@ -197,7 +212,7 @@ export class NumberCalc {
     public toBeGreaterThan = this[">"];
 
     // 大于
-    public [">="](value: Num): boolean {
+    public [">="](value: NUM): boolean {
         value = getValue(value);
         return this.value >= value;
     }
@@ -205,7 +220,7 @@ export class NumberCalc {
     public toBeGreaterThanOrEqual = this[">="];
 
     // 等于
-    public ["="](value: Num): boolean {
+    public ["="](value: NUM): boolean {
         value = getValue(value);
         return this.value === value;
     }
@@ -218,33 +233,56 @@ export class NumberCalc {
     }
 
     // 是否在范围内，相当于min <= value <= max
-    public in(min: Num, max: Num): boolean {
+    public in(min: NUM, max: NUM): boolean {
         min = getValue(min);
         max = getValue(max);
         const value = this.value;
         return min <= value && value <= max;
     }
 
-    // 100 - 20 * 2; <==>  Calc.init(20)["*"](2).by(100, "-")
-    public by(num: Num, calcLabel: CalcType): NumberCalc {
-        num = getValue(num);
-        const value = this._value;
-        this.setValue(num);
-        this[calcLabel](value);
+    // *************比较*************
+
+    // 绝对值
+    public abs(): NumberUtil {
+        const value = this.value;
+        if (value < 0) {
+            this.setValue(value * -1);
+        }
+        return this;
+    }
+
+    // toInt
+    public toInt() {
+        this.setValue(~~this.value);
+        return this;
+    }
+
+    public floor() {
+        this.setValue(Math.floor(this.value));
+        return this;
+    }
+
+    public round() {
+        this.setValue(Math.round(this.value));
+        return this;
+    }
+
+    // 重置为初始值
+    public reset(): NumberUtil {
+        this._value = this.initNumber;
         return this;
     }
 
     // 设置值
-    private setValue(value: Num): NumberCalc {
+    private setValue(value: NUM): NumberUtil {
         value = getValue(value);
         this._value = value;
         return this;
     }
 
-    // 重置为初始值
-    public reset(): NumberCalc {
-        this._value = this.initNumber;
-        return this;
+    // 设置值
+    public set value(num) {
+        this.setValue(num);
     }
 
     // 获取结果值
@@ -252,8 +290,4 @@ export class NumberCalc {
         return strip(this._value);
     }
 
-    // 设置当前值
-    public set value(num) {
-        this.setValue(num);
-    }
 }
