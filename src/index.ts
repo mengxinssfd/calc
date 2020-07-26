@@ -28,12 +28,19 @@ function getPow(a: number, b: number): number {
     return Math.pow(10, Math.max(aLen, bLen));
 }
 
-type Num = number[] | number | NumberCalc;
+type Num = number | NumberCalc;
+type NumOrNArr = Num[] | Num;
 
+function getValue(value: Num): number {
+    return value instanceof NumberCalc ? value.value : value;
+}
+
+type CalcType = "+" | "-" | "*" | "/" | "%" | "**"
+// const CalcTypeArr = ["+", "-", "*", "/", "%", "**"];
 
 // 链式计算
 export class NumberCalc {
-    private value: number;
+    private _value: number;
 
     constructor(private readonly initNumber: number) {
         this.setValue(initNumber);
@@ -44,91 +51,209 @@ export class NumberCalc {
         return new NumberCalc(num);
     }
 
-    private calcArr(num: number[], callback: (a: number, b: number, pow: number) => number) {
+    public static template(template: string): NumberCalc {
+        // 数字
+        const regNum = " ?-?\\d?\\.?\\d+ ?";
+        // 乘除余
+        const regCCY = "*\/%";
+        // 幂
+        const regPow = "\\*\\*";
+        // 加减
+        const regJJ = "+\\-";
+        const Calc = new NumberCalc(0);
+
+        function calc(search: string, label: CalcType): string {
+            // console.log("s:", search, "label:", label);
+            const arr = search.split(label).map(i => Number(i));
+            return String(Calc.setValue(arr[0])[label](arr[1]).value);
+        }
+
+        function foreach(s: string): string {
+            let result = s;
+            // 是否有括号
+            let reg = new RegExp(`\\((${regNum}((${regPow}|[${regCCY + regJJ}])${regNum})+)\\)`);
+            while (reg.test(result)) {
+                const search = RegExp.$1;
+                const value = String(foreach(search));
+                result = result.replace(reg, value);
+            }
+            // 是否有乘除余幂
+            reg = new RegExp(`(${regNum}(${regPow}|[${regCCY}])${regNum})+`);
+            while (reg.test(result)) {
+                const search = RegExp.$1;
+                const label = RegExp.$2 as CalcType;
+                result = result.replace(reg, calc(search, label));
+            }
+            // 是否有加减
+            reg = new RegExp(`(${regNum}([${regJJ}])${regNum})+`);
+            while (reg.test(result)) {
+                const search = RegExp.$1;
+                const label = RegExp.$2;
+                result = result.replace(reg, calc(search, label as CalcType));
+                // console.log("result", result);
+            }
+            return result;
+        }
+
+        return new NumberCalc(Number(foreach(template)));
+    }
+
+    private calcArr(num: Num[], callback: (a: number, b: number, pow: number) => number) {
         num.forEach(b => {
-            const a = this.value;
+            b = getValue(b);
+            const a = this._value;
             let pow = getPow(a, b);
             this.setValue(callback(a, b, pow));
         });
     }
 
-    private calc(callback: (a: number, b: number, pow: number) => number, num: Num, others: number[]) {
-        if (num instanceof NumberCalc) {
-            num = num.curVal;
-        }
-        if (!isArray(num)) {
-            const a = this.value;
-            const b = num;
-            let pow = getPow(a, b);
+    // 去除小数点
+    private calc(callback: (currentValue: number, value: number, pow: number) => number, value: NumOrNArr, others?: Num[]) {
+        if (!isArray(value)) {
+            value = getValue(value);
+            const a = this._value;
+            const b = value;
+            const pow = getPow(a, b);
             this.setValue(callback(a, b, pow));
         } else {
-            this.calcArr(num, callback);
+            this.calcArr(value, callback);
         }
-        if (others.length) {
+        if (others && others.length) {
             this.calcArr(others, callback);
         }
     }
 
     // 加
-    public ["+"](num: Num, ...others: number[]): NumberCalc {
-        this.calc((a, b, pow) => (a * pow + b * pow) / pow, num, others);
+    public ["+"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+        this.calc((a, b, pow) => (a * pow + b * pow) / pow, value, others);
         return this;
     }
 
     public plus = this["+"];
 
     // 减
-    public ["-"](num: Num, ...others: number[]): NumberCalc {
-        this.calc(((a, b, pow) => (a * pow - b * pow) / pow), num, others);
+    public ["-"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+        this.calc(((a, b, pow) => (a * pow - b * pow) / pow), value, others);
         return this;
     }
 
     public minus = this["-"];
 
     // 乘
-    public ["*"](num: Num, ...others: number[]): NumberCalc {
-        this.calc((a, b, pow) => pow * a * (b * pow) / (pow * pow), num, others);
+    public ["*"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+        this.calc((a, b, pow) => pow * a * (b * pow) / (pow * pow), value, others);
         return this;
     }
 
     public times = this["*"];
 
     // 除
-    public ["/"](num: Num, ...others: number[]): NumberCalc {
-        this.calc((a, b, pow) => a * pow / (b * pow), num, others);
+    public ["/"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+        this.calc((a, b, pow) => a * pow / (b * pow), value, others);
         return this;
     }
 
     public divide = this["/"];
 
-    // 100 - 20 * 2; <==>  Calc.create(20)["*"](2).by(100, "-")
-    public by(num: number | NumberCalc, calcLabel: "+" | "-" | "*" | "/") {
-        if (num instanceof NumberCalc) {
-            num = num.curVal;
-        }
+    // 除
+    public ["%"](value: NumOrNArr, ...others: Num[]): NumberCalc {
+        this.calc((a, b, pow) => a % b, value, others);
+        return this;
+    }
+
+
+    // 幂
+    public ["**"](pow: Num): NumberCalc {
+        pow = getValue(pow);
+        this.calc((a, value, pow) => a ** value, pow);
+        return this;
+    }
+
+    public pow = this["**"];
+
+    // 比较
+    // 小于
+    public ["<"](value: Num): boolean {
+        value = getValue(value);
+        return this.value < value;
+    }
+
+    public toBeLessThan = this["<"];
+
+    // 小于等于
+    public ["<="](value: Num): boolean {
+        value = getValue(value);
+        return this.value <= value;
+    }
+
+    public toBeLessThanOrEqual = this["<="];
+
+    // 大于
+    public [">"](value: Num): boolean {
+        value = getValue(value);
+        return this.value > value;
+    }
+
+    public toBeGreaterThan = this[">"];
+
+    // 大于
+    public [">="](value: Num): boolean {
+        value = getValue(value);
+        return this.value >= value;
+    }
+
+    public toBeGreaterThanOrEqual = this[">="];
+
+    // 等于
+    public ["="](value: Num): boolean {
+        value = getValue(value);
+        return this.value === value;
+    }
+
+    public toBeEqual = this["="];
+
+    public isNaN(): boolean {
         const value = this.value;
+        return value !== value;
+    }
+
+    // 是否在范围内，相当于min <= value <= max
+    public in(min: Num, max: Num): boolean {
+        min = getValue(min);
+        max = getValue(max);
+        const value = this.value;
+        return min <= value && value <= max;
+    }
+
+    // 100 - 20 * 2; <==>  Calc.init(20)["*"](2).by(100, "-")
+    public by(num: Num, calcLabel: CalcType): NumberCalc {
+        num = getValue(num);
+        const value = this._value;
         this.setValue(num);
         this[calcLabel](value);
         return this;
     }
 
-    private setValue(value: number) {
-        this.value = value;
-    }
-
-    // 获取当前值
-    public get curVal(): number {
-        return strip(this.value);
-    }
-
-    // 设置当前值
-    public set curVal(num) {
-        this.setValue(num);
+    // 设置值
+    private setValue(value: Num): NumberCalc {
+        value = getValue(value);
+        this._value = value;
+        return this;
     }
 
     // 重置为初始值
     public reset(): NumberCalc {
-        this.value = this.initNumber;
+        this._value = this.initNumber;
         return this;
+    }
+
+    // 获取结果值
+    public get value(): number {
+        return strip(this._value);
+    }
+
+    // 设置当前值
+    public set value(num) {
+        this.setValue(num);
     }
 }
