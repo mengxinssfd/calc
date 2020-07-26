@@ -16,7 +16,7 @@ test('getNumberLenAfterDot', () => {
 });
 
 test('Calc', () => {
-    const Num = numCalc.NumberUtil;
+    const Num = numCalc.NumberCalc;
     // 0.1 + 0.2 = 0.30000000000000004
     expect(0.1 + 0.2).not.toBe(0.3);
     const c = new Num(1);
@@ -147,7 +147,7 @@ test('Calc', () => {
     expect(Num.init(100.5).round().value).toBe(Math.round(100.5));
 });
 test('Calc 2', () => {
-    const Calc = numCalc.NumberUtil;
+    const Calc = numCalc.NumberCalc;
     const c = Calc.init(10)["/"](2)["+"](1);
     expect(Calc.init(100)["+"](c.reset()).by(10, "-").value).toBe(-100);
     expect(Calc.init(100)["-"](c).value).toBe(90);
@@ -155,7 +155,7 @@ test('Calc 2', () => {
     expect(new Calc(100)["/"](c).by(10, "-").value).toBe(0);
 });
 test('template', () => {
-    const Calc = numCalc.NumberUtil;
+    const Calc = numCalc.NumberCalc;
 
     // +
     expect(Calc.template("100+200").value).toBe(300);
