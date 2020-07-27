@@ -20,6 +20,7 @@ test('Calc', () => {
     // 0.1 + 0.2 = 0.30000000000000004
     expect(0.1 + 0.2).not.toBe(0.3);
     const c = new Num(1);
+    expect(Num.init(0.1)['+'](0.2).value.toString()).toBe('0.3');
 
     // 0.3 - 0.1 = 0.19999999999999998
     expect(0.3 - 0.1).not.toBe(0.2);
@@ -153,10 +154,12 @@ test('Calc 2', () => {
     expect(Calc.init(100)["-"](c).value).toBe(90);
     expect(Calc.init(100)["*"](c).by(10, "-").value).toBe(-990);
     expect(new Calc(100)["/"](c).by(10, "-").value).toBe(0);
+
+    expect(new Calc(10000000000.111111111)['+'](10000000000.111111111).value).toBe(20000000000.222222222);
 });
 test('template', () => {
     const Calc = numCalc.NumberCalc;
-
+    console.time("test");
     // +
     expect(Calc.template("100+200").value).toBe(300);
     expect(Calc.template("100+200+300").value).toBe(600);
@@ -194,6 +197,7 @@ test('template', () => {
     expect(Calc.template("2*((1+3)**2)").value).toBe(32);
     expect(Calc.template("0.2*((1+3)**2)").value).toBe(3.2);
     expect(Calc.template("0.2 * (( 1 + 3) ** 2)").value).toBe(3.2);
+    expect(Calc.template("0.2 * (( 1 + 3) * (10 - 5))").value).toBe(4);
 
     expect(Calc.template("0.1 + 0.2").value).toBe(0.3);
     expect(Calc.template("0.1 + 0. 2").value).toBe(NaN);
@@ -201,5 +205,9 @@ test('template', () => {
     expect(Calc.template("0.1 += 0. 2").value).toBe(NaN);
     expect(Calc.template("0.1 += 0. 2").isNaN()).toBe(true);
     expect(Calc.template("0.1 + 0.2").isNaN()).toBe(false);
+
+    expect(Calc.template("1 + 2 * 6 ** 2").value).toBe(73);
+
+    console.timeEnd("test");
 });
 

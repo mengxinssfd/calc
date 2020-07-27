@@ -9,8 +9,8 @@ function isArray(target: any): target is any[] {
  * 把错误的数据转正  from number-precision
  * strip(0.09999999999999998)=0.1
  */
-export function strip(num: number, precision = 12): number {
-    return +parseFloat(num.toPrecision(precision));
+export function strip(num: number): number {
+    return +parseFloat(num.toPrecision(String(num).length));
 }
 
 // 获取小数点后面数字的长度  // 支持科学计数法from number-precision
@@ -94,30 +94,32 @@ export class NumberCalc {
             return String(Calc.setValue(arr[0])[label](arr[1]).value);
         }
 
+        const regList = [
+            // 是否有幂
+            new RegExp(`(${regNum}(${regPow})${regNum})+`),
+            // 是否有乘除余
+            new RegExp(`(${regNum}(${regPow}|[${regCCY}])${regNum})+`),
+            // 是否有加减
+            new RegExp(`(${regNum}([${regJJ}])${regNum})+`),
+        ];
+        // 是否有括号
+        let reg = new RegExp(`\\((${regNum}((${regPow}|[${regCCY + regJJ}])${regNum})+)\\)`);
+
         function foreach(s: string): string {
             let result = s;
-            // 是否有括号
-            let reg = new RegExp(`\\((${regNum}((${regPow}|[${regCCY + regJJ}])${regNum})+)\\)`);
             while (reg.test(result)) {
                 const search = RegExp.$1;
                 const value = String(foreach(search));
                 result = result.replace(reg, value);
             }
-            // 是否有乘除余幂
-            reg = new RegExp(`(${regNum}(${regPow}|[${regCCY}])${regNum})+`);
-            while (reg.test(result)) {
-                const search = RegExp.$1;
-                const label = RegExp.$2 as CalcType;
-                result = result.replace(reg, calc(search, label));
-            }
-            // 是否有加减
-            reg = new RegExp(`(${regNum}([${regJJ}])${regNum})+`);
-            while (reg.test(result)) {
-                const search = RegExp.$1;
-                const label = RegExp.$2;
-                result = result.replace(reg, calc(search, label as CalcType));
-                // console.log("result", result);
-            }
+
+            regList.forEach(regItem => {
+                while (regItem.test(result)) {
+                    const search = RegExp.$1;
+                    const label = RegExp.$2 as CalcType;
+                    result = result.replace(regItem, calc(search, label));
+                }
+            });
             return result;
         }
 
