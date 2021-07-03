@@ -1,6 +1,7 @@
 export function isArray(target: any): target is any[] {
     return Array.isArray(target);
 }
+
 /**
  * 把错误的数据转正  from number-precision
  * strip(0.09999999999999998)=0.1
@@ -24,3 +25,5 @@ export function getPow(a: number, b: number): number {
     let bLen = getNumberLenAfterDot(b);
     return Math.pow(10, Math.max(aLen, bLen));
 }
+
+export type CalcType = "+" | "-" | "*" | "/" | "%" | "**"

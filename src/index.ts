@@ -1,5 +1,5 @@
 // 数字计算
-import {getPow, isArray, strip} from "./utils";
+import {getPow, isArray, strip, CalcType} from "./utils";
 
 type NUM = number | Calc;
 type NumOrNArr = NUM[] | NUM;
@@ -8,7 +8,7 @@ function getValue(value: NUM): number {
     return value instanceof Calc ? value.value : value;
 }
 
-type CalcType = "+" | "-" | "*" | "/" | "%" | "**"
+
 // const CalcTypeArr = ["+", "-", "*", "/", "%", "**"];
 
 // 链式计算
@@ -29,6 +29,14 @@ export default class Calc {
             let pow = getPow(a, b);
             this.setValue(callback(a, b, pow));
         });
+    }
+
+    public static plus(num: number | Calc, ...others: Array<number | Calc>) {
+        return others.reduce((a, v) => {
+            const b = v.valueOf();
+            const pow = getPow(a, b);
+            return (a * pow + b * pow) / pow;
+        }, 0);
     }
 
     // 去除小数点
