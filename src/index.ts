@@ -1,49 +1,25 @@
 // 数字计算
+import {getPow, isArray, strip} from "./utils";
 
-
-function isArray(target: any): target is any[] {
-    return Array.isArray(target);
-}
-
-/**
- * 把错误的数据转正  from number-precision
- * strip(0.09999999999999998)=0.1
- */
-export function strip(num: number): number {
-    return +parseFloat(num.toPrecision(String(num).length));
-}
-
-// 获取小数点后面数字的长度  // 支持科学计数法from number-precision
-export function getNumberLenAfterDot(num: number | string): number {
-    Number(1000).toPrecision();
-    const eSplit = String(num).split(/[eE]/);
-    const len = (eSplit[0].split('.')[1] || '').length - (+(eSplit[1] || 0));
-    return len > 0 ? len : 0;
-}
-
-// (10.10, 1.00001) => 100000
-function getPow(a: number, b: number): number {
-    let aLen = getNumberLenAfterDot(a);
-    let bLen = getNumberLenAfterDot(b);
-    return Math.pow(10, Math.max(aLen, bLen));
-}
-
-type NUM = number | NumberCalc;
+type NUM = number | Calc;
 type NumOrNArr = NUM[] | NUM;
 
 function getValue(value: NUM): number {
-    return value instanceof NumberCalc ? value.value : value;
+    return value instanceof Calc ? value.value : value;
 }
 
 type CalcType = "+" | "-" | "*" | "/" | "%" | "**"
 // const CalcTypeArr = ["+", "-", "*", "/", "%", "**"];
 
 // 链式计算
-export class NumberCalc {
+export default class Calc {
     private _value: number;
 
     public constructor(private readonly initNumber: number) {
         this.setValue(initNumber);
+        if (typeof Symbol !== "undefined") {
+            this[Symbol.toPrimitive] = () => this.value;
+        }
     }
 
     private calcArr(num: NUM[], callback: (a: number, b: number, pow: number) => number) {
@@ -73,11 +49,11 @@ export class NumberCalc {
 
 
     // 初始化一个实例
-    public static init(num: number): NumberCalc {
-        return new NumberCalc(num);
+    public static init(num: number): Calc {
+        return new Calc(num);
     }
 
-    public static template(template: string): NumberCalc {
+    public static template(template: string): Calc {
         // 数字
         const regNum = " ?-?\\d?\\.?\\d+ ?";
         // 乘除余
@@ -86,12 +62,12 @@ export class NumberCalc {
         const regPow = "\\*\\*";
         // 加减
         const regJJ = "+\\-";
-        const Calc = new NumberCalc(0);
+        const ins = new Calc(0);
 
         function calc(search: string, label: CalcType): string {
             // console.log("s:", search, "label:", label);
             const arr = search.split(label).map(i => Number(i));
-            return String(Calc.setValue(arr[0])[label](arr[1]).value);
+            return String(ins.setValue(arr[0])[label](arr[1]).value);
         }
 
         const regList = [
@@ -123,12 +99,12 @@ export class NumberCalc {
             return result;
         }
 
-        return new NumberCalc(Number(foreach(template)));
+        return new Calc(Number(foreach(template)));
     }
 
     // *************运算*************
     // 加
-    public ["+"](value: NumOrNArr, ...others: NUM[]): NumberCalc {
+    public ["+"](value: NumOrNArr, ...others: NUM[]): Calc {
         this.calc((a, b, pow) => (a * pow + b * pow) / pow, value, others);
         return this;
     }
@@ -136,7 +112,7 @@ export class NumberCalc {
     public plus = this["+"];
 
     // 减
-    public ["-"](value: NumOrNArr, ...others: NUM[]): NumberCalc {
+    public ["-"](value: NumOrNArr, ...others: NUM[]): Calc {
         this.calc(((a, b, pow) => (a * pow - b * pow) / pow), value, others);
         return this;
     }
@@ -144,7 +120,7 @@ export class NumberCalc {
     public minus = this["-"];
 
     // 乘
-    public ["*"](value: NumOrNArr, ...others: NUM[]): NumberCalc {
+    public ["*"](value: NumOrNArr, ...others: NUM[]): Calc {
         this.calc((a, b, pow) => pow * a * (b * pow) / (pow * pow), value, others);
         return this;
     }
@@ -152,7 +128,7 @@ export class NumberCalc {
     public times = this["*"];
 
     // 除
-    public ["/"](value: NumOrNArr, ...others: NUM[]): NumberCalc {
+    public ["/"](value: NumOrNArr, ...others: NUM[]): Calc {
         this.calc((a, b, pow) => a * pow / (b * pow), value, others);
         return this;
     }
@@ -160,7 +136,7 @@ export class NumberCalc {
     public divide = this["/"];
 
     // 余
-    public ["%"](value: NumOrNArr, ...others: NUM[]): NumberCalc {
+    public ["%"](value: NumOrNArr, ...others: NUM[]): Calc {
         this.calc((a, b, pow) => a % b, value, others);
         return this;
     }
@@ -168,7 +144,7 @@ export class NumberCalc {
     // 取余的英文不知道怎么说
 
     // 幂
-    public ["**"](pow: NUM = 2): NumberCalc {
+    public ["**"](pow: NUM = 2): Calc {
         pow = getValue(pow);
         this.calc((a, value, pow) => a ** value, pow);
         return this;
@@ -178,7 +154,7 @@ export class NumberCalc {
 
 
     // 100 - 20 * 2; <==>  Calc.init(20)["*"](2).by(100, "-")
-    public by(num: NUM, calcLabel: CalcType): NumberCalc {
+    public by(num: NUM, calcLabel: CalcType): Calc {
         num = getValue(num);
         const value = this._value;
         this.setValue(num);
@@ -245,7 +221,7 @@ export class NumberCalc {
     // *************比较*************
 
     // 绝对值
-    public abs(): NumberCalc {
+    public abs(): Calc {
         const value = this.value;
         if (value < 0) {
             this.setValue(value * -1);
@@ -270,13 +246,13 @@ export class NumberCalc {
     }
 
     // 重置为初始值
-    public reset(): NumberCalc {
+    public reset(): Calc {
         this._value = this.initNumber;
         return this;
     }
 
     // 设置值
-    private setValue(value: NUM): NumberCalc {
+    private setValue(value: NUM): Calc {
         value = getValue(value);
         this._value = value;
         return this;
@@ -292,4 +268,15 @@ export class NumberCalc {
         return strip(this._value);
     }
 
+    public valueOf(): number {
+        return this.value;
+    }
+
+    public toString(): string {
+        return String(this.value);
+    }
+
+    /* [Symbol.toString](hint: any): number {
+         return this.value;
+     }*/
 }
