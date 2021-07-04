@@ -1,15 +1,8 @@
 // 数字计算
-import {getPow, isArray, strip, CalcType} from "./utils";
+import {plus, minus, divide, times, calcArr} from "@mxssfd/ts-utils";
 
+export type CalcType = "+" | "-" | "*" | "/" | "%" | "**"
 type NUM = number | Calc;
-type NumOrNArr = NUM[] | NUM;
-
-function getValue(value: NUM): number {
-    return value instanceof Calc ? value.value : value;
-}
-
-
-// const CalcTypeArr = ["+", "-", "*", "/", "%", "**"];
 
 // 链式计算
 export default class Calc {
@@ -21,40 +14,6 @@ export default class Calc {
             this[Symbol.toPrimitive] = () => this.value;
         }
     }
-
-    private calcArr(num: NUM[], callback: (a: number, b: number, pow: number) => number) {
-        num.forEach(b => {
-            b = getValue(b);
-            const a = this._value;
-            let pow = getPow(a, b);
-            this.setValue(callback(a, b, pow));
-        });
-    }
-
-    public static plus(num: number | Calc, ...others: Array<number | Calc>) {
-        return others.reduce((a, v) => {
-            const b = v.valueOf();
-            const pow = getPow(a, b);
-            return (a * pow + b * pow) / pow;
-        }, 0);
-    }
-
-    // 去除小数点
-    private calc(callback: (currentValue: number, value: number, pow: number) => number, value: NumOrNArr, others?: NUM[]) {
-        if (!isArray(value)) {
-            value = getValue(value);
-            const a = this._value;
-            const b = value;
-            const pow = getPow(a, b);
-            this.setValue(callback(a, b, pow));
-        } else {
-            this.calcArr(value, callback);
-        }
-        if (others && others.length) {
-            this.calcArr(others, callback);
-        }
-    }
-
 
     // 初始化一个实例
     public static init(num: number): Calc {
@@ -110,62 +69,64 @@ export default class Calc {
         return new Calc(Number(foreach(template)));
     }
 
+    public static plus = plus;
+    public static minus = minus;
+    public static times = times;
+    public static divide = divide;
+
     // *************运算*************
     // 加
-    public ["+"](value: NumOrNArr, ...others: NUM[]): Calc {
-        this.calc((a, b, pow) => (a * pow + b * pow) / pow, value, others);
+    public ["+"](...nums: Array<number | Calc>): Calc {
+        this.setValue(Calc.plus(this._value, ...(nums as number[])));
         return this;
     }
 
     public plus = this["+"];
 
     // 减
-    public ["-"](value: NumOrNArr, ...others: NUM[]): Calc {
-        this.calc(((a, b, pow) => (a * pow - b * pow) / pow), value, others);
+    public ["-"](...nums: Array<number | Calc>): Calc {
+        this.setValue(Calc.minus(this._value, ...(nums as number[])));
         return this;
     }
 
     public minus = this["-"];
 
     // 乘
-    public ["*"](value: NumOrNArr, ...others: NUM[]): Calc {
-        this.calc((a, b, pow) => pow * a * (b * pow) / (pow * pow), value, others);
+    public ["*"](...nums: Array<number | Calc>): Calc {
+        this.setValue(Calc.times(this._value, ...(nums as number[])));
         return this;
     }
 
     public times = this["*"];
 
     // 除
-    public ["/"](value: NumOrNArr, ...others: NUM[]): Calc {
-        this.calc((a, b, pow) => a * pow / (b * pow), value, others);
+    public ["/"](...nums: Array<number | Calc>): Calc {
+        this.setValue(Calc.divide(this._value, ...(nums as number[])));
         return this;
     }
 
     public divide = this["/"];
 
     // 余
-    public ["%"](value: NumOrNArr, ...others: NUM[]): Calc {
-        this.calc((a, b, pow) => a % b, value, others);
+    public ["%"](...nums: number[]): Calc {
+        this.setValue(calcArr(this._value, nums, (a, b, pow) => a % b));
         return this;
     }
 
-    // 取余的英文不知道怎么说
+    public mod = this["%"];
 
     // 幂
     public ["**"](pow: NUM = 2): Calc {
-        pow = getValue(pow);
-        this.calc((a, value, pow) => a ** value, pow);
+        this.setValue(Math.pow(this._value, pow.valueOf()));
         return this;
     }
 
     public pow = this["**"];
 
-
     // 100 - 20 * 2; <==>  Calc.init(20)["*"](2).by(100, "-")
     public by(num: NUM, calcLabel: CalcType): Calc {
-        num = getValue(num);
         const value = this._value;
-        this.setValue(num);
+        this.setValue(num.valueOf());
         this[calcLabel](value);
         return this;
     }
@@ -175,40 +136,35 @@ export default class Calc {
     // *************比较*************
     // 小于
     public ["<"](value: NUM): boolean {
-        value = getValue(value);
-        return this.value < value;
+        return this.value < value.valueOf();
     }
 
     public toBeLessThan = this["<"];
 
     // 小于等于
     public ["<="](value: NUM): boolean {
-        value = getValue(value);
-        return this.value <= value;
+        return this.value <= value.valueOf();
     }
 
     public toBeLessThanOrEqual = this["<="];
 
     // 大于
     public [">"](value: NUM): boolean {
-        value = getValue(value);
-        return this.value > value;
+        return this.value > value.valueOf();
     }
 
     public toBeGreaterThan = this[">"];
 
     // 大于
     public [">="](value: NUM): boolean {
-        value = getValue(value);
-        return this.value >= value;
+        return this.value >= value.valueOf();
     }
 
     public toBeGreaterThanOrEqual = this[">="];
 
     // 等于
     public ["="](value: NUM): boolean {
-        value = getValue(value);
-        return this.value === value;
+        return this.value === value.valueOf();
     }
 
     public toBeEqual = this["="];
@@ -220,8 +176,8 @@ export default class Calc {
 
     // 是否在范围内，相当于min <= value <= max
     public in(min: NUM, max: NUM): boolean {
-        min = getValue(min);
-        max = getValue(max);
+        min = min.valueOf();
+        max = max.valueOf();
         const value = this.value;
         return min <= value && value <= max;
     }
@@ -261,8 +217,7 @@ export default class Calc {
 
     // 设置值
     private setValue(value: NUM): Calc {
-        value = getValue(value);
-        this._value = value;
+        this._value = value.valueOf();
         return this;
     }
 
@@ -273,7 +228,8 @@ export default class Calc {
 
     // 获取结果值
     public get value(): number {
-        return strip(this._value);
+        // return strip(this._value);
+        return this._value;
     }
 
     public valueOf(): number {
