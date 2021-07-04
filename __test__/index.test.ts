@@ -143,6 +143,39 @@ test("Calc 2", () => {
     // 涉及位数长的数字计算还是不够准确，会省略掉一部分
     expect(new Calc(10000000000.111111111)["+"](10000000000.111111111).toString()).toBe("20000000000.22222");
 });
+test("Calc operate calc", () => {
+    const num = new Calc(10);
+    expect((num as any) + 100).toBe(110);
+
+    // const origin = num[Symbol.toPrimitive];
+    // 1.toPrimitive存在时优先使用toPrimitive
+    num[Symbol.toPrimitive] = function () {
+        return 0;
+    };
+    expect((num as any) + 100).toBe(100);
+
+    // 2.toPrimitive不存在时使用valueOf
+    num[Symbol.toPrimitive] = undefined;
+    expect((num as any) + 100).toBe(110);
+    num.valueOf = () => -10;
+    expect((num as any) + 100).toBe(90);
+
+    // 3.valueOf不存在时使用toString
+    // @ts-ignore
+    num["valueOf"] = undefined;
+    num.reset();
+    expect((num as any) + 100).toBe("10100");
+    num.toString = () => "";
+    expect((num as any) + 100).toBe("100");
+
+    // 4.toString都不存在时，会报错
+    // @ts-ignore
+    num["toString"] = undefined;
+    num.reset();
+    expect(() => {
+        return (num as any) + 100;
+    }).toThrow();
+});
 test("plus", () => {
     expect(10000000000.111111111 + 10000000000.111111111).toBe(20000000000.222222222);
     expect((10000000000.111111111 + 10000000000.111111111).toString()).not.toBe("20000000000.222222222");
